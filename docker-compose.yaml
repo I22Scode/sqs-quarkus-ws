@@ -1,0 +1,16 @@
+services:
+  tx-validator:
+    hostname: tx-validator
+    image: j9r/tx-validator
+    container_name: tx-validator
+    ports:
+      - 8000:8000
+  sqs-local:
+    image: localstack/localstack
+    container_name: sqs-local
+    hostname: sqs-local
+    ports:
+      - 4566:4566
+    environment:
+      - SERVICES=sqs
+      - TART_WEB=0
