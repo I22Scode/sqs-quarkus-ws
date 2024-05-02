@@ -14,3 +14,21 @@ services:
     environment:
       - SERVICES=sqs
       - TART_WEB=0
+    volumes:
+      - ./volume:/var/lib/localstack
+  tx-producer:
+    hostname: tx-producer
+    image: j9r/tx-producer
+    container_name: tx-producer
+    ports:
+      - 8080:8080
+    environment:
+      - QUARKUS_SQS_ENDPOINT_OVERRIDE=http://sqs-local:4566
+  tx-consumer:
+    hostname: tx-consumer
+    image: j9r/tx-consumer
+    container_name: tx-consumer
+    ports:
+      - 8080:8080
+    environment:
+      - QUARKUS_SQS_ENDPOINT_OVERRIDE=http://sqs-local:4566

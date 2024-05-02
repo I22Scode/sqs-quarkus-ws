@@ -7,6 +7,8 @@ public class Transaction {
     public String id;
     public String status = "pending";
     public int amount = 0;
+    public long creationTS;
+    public long endTS;
 
     public Transaction() {
         super();

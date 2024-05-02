@@ -9,7 +9,8 @@ class Transaction(BaseModel):
     id: str
     status: str
     amount: int
-
+    creationTS: int
+    endTS: int
     
 @app.get("/health")
 async def get_hello():
