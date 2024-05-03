@@ -33,6 +33,9 @@ public class TransactionConsumer {
     ValidationService validationService;
 
     @Inject
+    MobileSocketServer notifyConnected;
+
+    @Inject
     SqsClient sqsClient;
 
     @ConfigProperty(name = "queue.maxNumberOfMessages")
@@ -44,8 +47,6 @@ public class TransactionConsumer {
     @ConfigProperty(name = "queue.wait-time-seconds")
     int waitTimeSeconds;
 
-    @ConfigProperty(name = "queue.poll-time-seconds")
-    int pollTimeSeconds;
    
     @GET
     @Path("/health")
@@ -54,7 +55,7 @@ public class TransactionConsumer {
         return "running";
     }
 
-    @Scheduled(every = "${pollTimeSeconds}")
+    @Scheduled(every = "{queue.poll-time-seconds}")
     public void processTransaction() {
         try {
             ReceiveMessageRequest request = ReceiveMessageRequest.builder()
@@ -71,6 +72,7 @@ public class TransactionConsumer {
 
             for (Transaction tx : txs) {
                 Transaction txo = validationService.validateTransaction((tx));
+                notifyConnected.broadcast(transactionJson(txo));
                 System.out.println(txo.toString());
             }
             messages.forEach(message -> {
@@ -96,5 +98,16 @@ public class TransactionConsumer {
             throw new RuntimeException(e);
         }
         return tx;
+    }
+
+    private String transactionJson(Transaction tx) {
+        String rep;
+        try {
+            rep = new ObjectMapper().writeValueAsString(tx);
+        } catch (Exception e) {
+            LOGGER.error("Error decoding message", e);
+            throw new RuntimeException(e);
+        }
+        return rep;
     }
 }

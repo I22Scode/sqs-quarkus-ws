@@ -20,6 +20,7 @@ public class Transaction {
                 "id='" + id + '\'' +
                 "status='" + status + '\'' +
                 ", amount=" + amount +
+                ", creation time=" + creationTS +
                 '}';
     }
 }
