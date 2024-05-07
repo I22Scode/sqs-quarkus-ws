@@ -35,8 +35,31 @@ Target architecture for a production ready solution:
     ```
 
 * Create the queue: QUEUE_URL=`aws sqs create-queue --queue-name=TxQueue --profile localstack --endpoint-url=http://localhost:4566`  or the script `create_queue.sh`
-* Verify created queue with: 
+
+* Verify the queues with: 
 
     ```sh
     aws sqs list-queues --profile localstack --endpoint-url=http://localhost:4566
     ```
+
+* Use the Producer Swagger to test sending a Transaction
+
+* Start the Mobile simulator, and go to [http://localhost:7860/](http://localhost:7860/)
+
+    ```sh
+    gradio main.py
+    # or
+    python main.py
+    ```
+
+    Enter a user name and then connect, so the client app can connect via websocket to server, 
+    
+    ![](./docs/simul-1.PNG)
+
+    then enter a transaction amount. A new Transaction object is created and sent with a timestamp to the producer, then sqs, and the consumer has a trace showing it consumed from SQS. 
+
+    ```
+    Transaction{id='1d04a5d3d8e54c068363f2365b399a87'status='rejected', amount=45, creation time=1715028952}
+    ```
+
+

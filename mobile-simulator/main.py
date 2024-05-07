@@ -8,7 +8,9 @@ import time
 import asyncio
 
 """
-A simple UI to demonstrate the async transaction processing
+A simple UI to demonstrate the async transaction processing.
+It uses a basic transaction object.
+Use the gradio.app for user interface in python, for quick demo
 """
 
 # ---- Server side code
@@ -23,16 +25,7 @@ class Transaction(BaseModel):
 websocket.enableTrace(True)
 ws = websocket.WebSocket()
 
-output = gr.Textbox(label="Message from transaction processing")
 
-async def handle_messages():
-        while True:
-            try:
-                message = await websocket.recv()
-                output.update(message)
-            except websocket.exceptions.ConnectionClosed:
-                print("Connection closed.")
-                break
 
 
 def connectUser(username):
@@ -45,7 +38,11 @@ def connectUser(username):
 def disConnectUser():
     ws.close()
 
+
 def sendTransaction(data):
+    """
+    Send a transaction to the Transaction service via REST API
+    """
     tx = Transaction(id = uuid.uuid4().hex, 
                      amount = data,
                      status = "Pending",
@@ -53,28 +50,43 @@ def sendTransaction(data):
                      endTS = 0)
     requests.post("http://localhost:8082/transactions", json= tx.model_dump())
     return tx
-    
+
+# ---------------------- User interface part
+  
 with gr.Blocks() as demo:
     gr.Markdown("""
-        # Send Transaction with chat
+        # Send Transaction with a messenger front end
                 
         Connect and start sending transaction
     """)
-   
     output = gr.Textbox(label="Message from transaction processing")
 
+    async def handle_messages():
+        """
+        Message coming from Tx validation orchestrator
+        """
+        while True:
+            try:
+                message = await ws.recv()
+                output.update(message)
+            except Exception as e:
+                print("Error on connection or receiver")
+                break
+
+
     with gr.Row():
-        name = gr.Textbox(label="UserName")
+        name = gr.Textbox(label="Enter Fake User Name")
         connect_btn = gr.Button("Connect")
         connect_btn.click(fn=connectUser, inputs=name, outputs=output, api_name="connectUser")
         disconnect_btn = gr.Button("Disconnect")
         disconnect_btn.click(fn=disConnectUser, api_name="disConnectUser")
     
     with gr.Blocks():
-        amount = gr.Textbox(label="Transaction Amount")
+        amount = gr.Textbox(label="Transaction Amount (the other attributes are populated)")
         submit_btn = gr.Button("Submit")
         txOut = gr.Textbox(label="Transaction Sent")
         submit_btn.click(fn=sendTransaction, inputs= amount, outputs = txOut, api_name="sendTransaction")
         
-
+    asyncio.run(handle_messages())
+    
 demo.launch()

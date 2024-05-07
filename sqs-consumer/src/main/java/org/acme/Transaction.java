@@ -21,6 +21,7 @@ public class Transaction {
                 "status='" + status + '\'' +
                 ", amount=" + amount +
                 ", creation time=" + creationTS +
+                ", end time=" + endTS +
                 '}';
     }
 }

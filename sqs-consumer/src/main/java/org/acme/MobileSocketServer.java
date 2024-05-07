@@ -1,6 +1,7 @@
 package org.acme;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import jakarta.enterprise.context.ApplicationScoped;
@@ -21,12 +22,14 @@ public class MobileSocketServer {
 
     @OnOpen
     public void onOpen(Session session, @PathParam("username") String username) {
+        System.out.println("User " + username + " joined");
         broadcast("User " + username + " joined");
         sessions.put(username, session);
     }
 
     @OnClose
     public void onClose(Session session, @PathParam("username") String username) {
+        System.out.println("User " + username + " left");
         sessions.remove(username);
         broadcast("User " + username + " left");
     }
@@ -39,7 +42,8 @@ public class MobileSocketServer {
 
     @OnMessage
     public void onMessage(String message, @PathParam("username") String username) {
-        broadcast(">> " + username + ": " + message);
+        System.out.println("Got " + message + " from " +  username);
+        broadcast(" >> " + username + ": " + message);
     }
 
     public void broadcast(String message) {
@@ -50,6 +54,11 @@ public class MobileSocketServer {
                 }
             });
         });
+    }
+
+
+    public Set<String> getConnectedUsers() {
+        return sessions.keySet();
     }
 
 } // class

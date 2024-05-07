@@ -1,5 +1,6 @@
 package org.acme;
 
+import java.time.Instant;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import io.quarkus.scheduler.Scheduled;
@@ -17,6 +18,7 @@ import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -55,6 +57,13 @@ public class TransactionConsumer {
         return "running";
     }
 
+    @GET
+    @Path("/users")
+    @Produces(MediaType.TEXT_PLAIN)
+    public Set<String> getConnectedUsers() {
+        return notifyConnected.getConnectedUsers();
+    }
+
     @Scheduled(every = "{queue.poll-time-seconds}")
     public void processTransaction() {
         try {
@@ -72,17 +81,18 @@ public class TransactionConsumer {
 
             for (Transaction tx : txs) {
                 Transaction txo = validationService.validateTransaction((tx));
+                txo.endTS = Instant.now().toEpochMilli();
                 notifyConnected.broadcast(transactionJson(txo));
-                System.out.println(txo.toString());
+                LOGGER.info(txo.toString());
             }
             messages.forEach(message -> {
-            String receiptHandle = message.receiptHandle();
-            DeleteMessageRequest delReq = DeleteMessageRequest.builder()
-                    .queueUrl(queueUrl)
-                    .receiptHandle(receiptHandle)
-                    .build();
-                    sqsClient.deleteMessage(delReq);
-            });
+                String receiptHandle = message.receiptHandle();
+                DeleteMessageRequest delReq = DeleteMessageRequest.builder()
+                        .queueUrl(queueUrl)
+                        .receiptHandle(receiptHandle)
+                        .build();
+                        sqsClient.deleteMessage(delReq);
+                });
         } catch (Exception e) {
             e.printStackTrace();
         }

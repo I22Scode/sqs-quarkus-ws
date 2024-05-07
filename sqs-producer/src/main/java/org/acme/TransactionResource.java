@@ -43,7 +43,7 @@ private static final Logger LOGGER = Logger.getLogger(TransactionResource.class)
     public Response  save_transaction(Transaction tx) throws Exception {
    String message = TX_WRITER.writeValueAsString(tx);
         SendMessageResponse response = sqs.sendMessage(m -> m.queueUrl(queueUrl).messageBody(message));
-        LOGGER.infov("Send tx[{0}, {1}}]", tx.id, tx.status);
+        LOGGER.infov("Send tx[id: {0}, status: {1} Time: {2}]", tx.id, tx.status, tx.creationTS);
     
         return Response.ok().entity(response.messageId()).build();
     }

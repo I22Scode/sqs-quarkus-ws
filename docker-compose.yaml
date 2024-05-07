@@ -29,6 +29,8 @@ services:
     image: j9r/tx-consumer
     container_name: tx-consumer
     ports:
-      - 8081:8080
+      - 8081:8081
     environment:
       - QUARKUS_SQS_ENDPOINT_OVERRIDE=http://sqs-local:4566
+      - QUARKUS_REST_CLIENT_VALIDATION_API_URL=http://tx-validator:8000
+      - QUARKUS_SQS_API_CALL_TIMEOUT=3600
